@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Container, Navbar, Row, Col, Badge } from 'react-bootstrap';
 import Grocery from './components/Grocery/Grocery';
 import GroceryForm from './components/GroceryForm/GroceryForm';
@@ -8,13 +8,71 @@ function App() {
   const [groceryList, setGroceryList] = useState([]);
   const [cartList, setCartList] = useState([]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      fetch(`http://192.168.1.2:3001/grocery`, {
+        method: 'GET',
+      })
+        .then((result) => {
+          if (result.ok) {
+            return result.json();
+          }
+
+          throw Response;
+        })
+        .then((result) => {
+          setGroceryList(result);
+        });
+    };
+
+    fetchData();
+
+    const fetchCartData = async () => {
+      fetch(`http://192.168.1.2:3001/cart`, {
+        method: 'GET',
+      })
+        .then((result) => {
+          if (result.ok) {
+            return result.json();
+          }
+
+          throw Response;
+        })
+        .then((result) => {
+          setCartList(result);
+        });
+    };
+
+    fetchCartData();
+  }, []);
+
   const addGroceryItemHandler = (groceryItem) => {
+    fetch('http://192.168.1.2:3001/grocery', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(groceryItem),
+    });
+
     setGroceryList((prevState) => {
       return [...prevState, groceryItem];
     });
   };
 
   const addToCartHandler = (data) => {
+    fetch(`http://192.168.1.2:3001/grocery?id=${data.id}`, {
+      method: 'DELETE',
+    });
+
+    fetch('http://192.168.1.2:3001/cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
     const filterGroceryList = groceryList.filter(
       (grocery) => grocery.id !== data.id
     );
@@ -24,6 +82,10 @@ function App() {
   };
 
   const deleteItemHandler = (id) => {
+    fetch(`http://192.168.1.2:3001/grocery?id=${id}`, {
+      method: 'DELETE',
+    });
+
     const filterGroceryList = groceryList.filter(
       (grocery) => grocery.id !== id
     );
@@ -31,6 +93,10 @@ function App() {
   };
 
   const cartItemDeleteHandler = (id) => {
+    fetch(`http://192.168.1.2:3001/cart?id=${id}`, {
+      method: 'DELETE',
+    });
+
     const filterCartList = cartList.filter((cartItem) => cartItem.id !== id);
 
     setCartList(filterCartList);
@@ -41,7 +107,7 @@ function App() {
       <Container>
         <Row>
           <Col>
-            <Navbar fixed="top" expand="lg" variant="light" bg="light">
+            <Navbar fixed="top" expand="lg" variant="dark" bg="dark">
               <Container>
                 <GroceryForm
                   onAddGroceryItem={addGroceryItemHandler}
@@ -75,7 +141,7 @@ function App() {
       <Container>
         <Row>
           <Col>
-            <Navbar fixed="bottom" expand="lg" variant="light" bg="light">
+            <Navbar fixed="bottom" expand="lg" variant="dark" bg="dark">
               <Container>
                 <Navbar.Brand>
                   TOTAL &nbsp;
